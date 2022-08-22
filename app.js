@@ -21,7 +21,36 @@ var uiController = (function () {
   };
 })();
 // Санхүүтэй ажиллах контроллер
-var financeController = (function () {})();
+var financeController = (function () {
+  // Байгуулагч фц тул эхний үсгийг томоор бичнэ
+  var Income = function (id, desc, value) {
+    this.id = id;
+    this.desc = desc;
+    this.value = value;
+  };
+  var Expense = function (id, desc, value) {
+    this.id = id;
+    this.desc = desc;
+    this.value = value;
+  };
+
+  // var incomes = [];
+  // var expenses = [];
+
+  // var totalIncomes = 0;
+  // var totalExpenses = 0;
+
+  var data = {
+    allitems: {
+      inc: [],
+      exp: [],
+    },
+    totals: {
+      inc: 0,
+      exp: 0,
+    },
+  };
+})();
 
 // Програмын холбогч контроллер
 var appController = (function (uiController, financeController) {
