@@ -33,13 +33,6 @@ var financeController = (function () {
     this.desc = desc;
     this.value = value;
   };
-
-  // var incomes = [];
-  // var expenses = [];
-
-  // var totalIncomes = 0;
-  // var totalExpenses = 0;
-
   var data = {
     allitems: {
       inc: [],
