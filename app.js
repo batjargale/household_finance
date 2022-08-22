@@ -34,7 +34,7 @@ var financeController = (function () {
     this.value = value;
   };
   var data = {
-    allitems: {
+    items: {
       inc: [],
       exp: [],
     },
@@ -43,14 +43,39 @@ var financeController = (function () {
       exp: 0,
     },
   };
+
+  return {
+    addItem: function (type, desc, val) {
+      var item, id;
+      // id = [1,2,4,5,8..] ийм байх бөгөөд id -ийг олгохдоо хамгийн сүүлийн элементийн дугаар дээр нэгйг нэмэгдүүлнэ.
+      if (data.items[type].length === 0) id = 1;
+      else {
+        id = data.items[type][data.items[type].length - 1].id + 1;
+      }
+
+      if (type === "inc") {
+        item = new Income(id, desc, val);
+      } else {
+        //exp
+        item = new Expense(id, desc, val);
+      }
+      data.items[type].push(item);
+    },
+    data: function () {
+      return data;
+    },
+  };
 })();
 
 // Програмын холбогч контроллер
 var appController = (function (uiController, financeController) {
   var ctrlAddItem = function () {
     //1. Оруулах өгөгдлийг дэлгэцнээс олж авна.
-    console.log(uiController.getInput());
+    // console.log(uiController.getInput());
+    var input = uiController.getInput();
     //2. Олж авсан өгөгдлүүдээ санхүүгийн контроллерт дамжуулж, тэнд хадгална.
+    financeController.addItem(input.type, input.desc, input.value);
+    console.log(financeController.addItem);
     //3. Олж авсан өгөгдлүүдээ вэб дээрээ тохирох хэсэгт дамжуулж, тэнд хадгална.
     //4.Төсвийг тооцоолно.
     //5.Эцсийн үлдэгдэл, тооцоог дэлгэцэнд гаргана.
