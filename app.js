@@ -25,7 +25,6 @@ var financeController = (function () {})();
 
 // Програмын холбогч контроллер
 var appController = (function (uiController, financeController) {
-  var DOM = uiController.getDOMstrings(); //UI aas css class uudiig duudaj bna
   var ctrlAddItem = function () {
     //1. Оруулах өгөгдлийг дэлгэцнээс олж авна.
     console.log(uiController.getInput());
@@ -35,15 +34,26 @@ var appController = (function (uiController, financeController) {
     //5.Эцсийн үлдэгдэл, тооцоог дэлгэцэнд гаргана.
     // console.log("click");
   };
-  document.querySelector(DOM.addBtn).addEventListener("click", function () {
-    ctrlAddItem();
-  });
 
-  document.addEventListener("keypress", function (event) {
-    // console.log(event);
-    if (event.keyCode === 13 || event.which === 13) {
-      // console.log("Enter дарсан байна " + event.keyCode);
+  var setupEventListeners = function () {
+    var DOM = uiController.getDOMstrings(); //UI aas css class uudiig duudaj bna
+    document.querySelector(DOM.addBtn).addEventListener("click", function () {
       ctrlAddItem();
-    }
-  });
+    });
+
+    document.addEventListener("keypress", function (event) {
+      if (event.keyCode === 13 || event.which === 13) {
+        ctrlAddItem();
+      }
+    });
+  };
+
+  return {
+    init: function () {
+      console.log("Програм уншиж байна ... ");
+      setupEventListeners();
+    },
+  };
 })(uiController, financeController);
+
+appController.init();
