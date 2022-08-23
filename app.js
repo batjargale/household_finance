@@ -6,27 +6,48 @@ var uiController = (function () {
     inputDesc: ".add__description",
     inputValue: ".add__value",
     addBtn: ".add__btn",
+    incomeList: ".income__list",
+    expanseList: ".expenses__list",
   };
   return {
     getInput: function () {
       return {
         type: document.querySelector(DOMstrings.inputType).value,
         desc: document.querySelector(DOMstrings.inputDesc).value,
-        value: document.querySelector(DOMstrings.inputValue).value,
+        value: parseInt(document.querySelector(DOMstrings.inputValue).value),
       };
     },
     getDOMstrings: function () {
       return DOMstrings;
     },
+    clearFields: function () {
+      // Дэлгэцийн input-ийн утгуудыг цэвэрлэх
+      //list өгөгдөл
+      var fields = document.querySelectorAll(
+        DOMstrings.inputDesc + ", " + DOMstrings.inputValue
+      );
+
+      // convert list to array
+      var fieldsArr = Array.prototype.slice.call(fields);
+
+      // fieldsArr.forEach(function (el, index, array) {}  === for
+      fieldsArr.forEach(function (el) {
+        el.value = "";
+      });
+      // for (var i = 0; i < fieldsArr.length; i++) {
+      //   fieldsArr[i].value = "";
+      // }
+      fieldsArr[0].focus();
+    },
     addListItem: function (item, type) {
       //Орлого зарлагыг агуулын HTML-ийг бэлтгэнэ.
       var html, list;
       if (type === "inc") {
-        list = ".income__list";
+        list = DOMstrings.incomeList;
         html =
           '<div class="item clearfix" id="income-%id%"><div class="item__description">$$desc$$</div><div class="right clearfix"><div class="item__value">$$val$$</div><div class="item__delete"><button class="item__delete--btn"><i class="ion-ios-close-outline"></i></button></div></div></div>';
       } else {
-        list = ".expenses__list";
+        list = DOMstrings.expanseList;
         html =
           '<div class="item clearfix" id="expense-%id%"><div class="item__description">$$desc$$</div><div class="right clearfix"><div class="item__value">$$val$$</div><div class="item__percentage">21%</div><div class="item__delete"><button class="item__delete--btn"><i class="ion-ios-close-outline"></i></button></div></div></div>';
       }
@@ -53,6 +74,13 @@ var financeController = (function () {
     this.desc = desc;
     this.value = value;
   };
+  var calculateTotal = function (type) {
+    var sum = 0;
+    data.items[type].forEach(function (el) {
+      sum = sum + el.value;
+    });
+    data.totals[type] = sum;
+  };
   var data = {
     items: {
       inc: [],
@@ -62,9 +90,26 @@ var financeController = (function () {
       inc: 0,
       exp: 0,
     },
+    tusuv: 0,
+    huvi: 0,
   };
 
   return {
+    tusuvTootsooloh: function () {
+      calculateTotal("inc");
+      calculateTotal("exp");
+
+      data.tusuv = data.totals.inc - data.totals.exp;
+      data.huvi = Math.round((data.totals.exp / data.totals.inc) * 100);
+    },
+    tusviigAvah: function () {
+      return {
+        tusuv: data.tusuv,
+        huvi: data.huvi,
+        totalInc: data.totals.inc,
+        totalExp: data.totals.exp,
+      };
+    },
     addItem: function (type, desc, val) {
       var item, id;
       // id = [1,2,4,5,8..] ийм байх бөгөөд id -ийг олгохдоо хамгийн сүүлийн элементийн дугаар дээр нэгйг нэмэгдүүлнэ.
@@ -95,12 +140,21 @@ var appController = (function (uiController, financeController) {
     // console.log(uiController.getInput());
     var input = uiController.getInput();
     //2. Олж авсан өгөгдлүүдээ санхүүгийн контроллерт дамжуулж, тэнд хадгална.
-    var item = financeController.addItem(input.type, input.desc, input.value);
+    if (input.type != "" && input.value != "") {
+      var item = financeController.addItem(input.type, input.desc, input.value);
+    }
+
     // console.log(financeController.addItem);
     //3. Олж авсан өгөгдлүүдээ вэб дээрээ тохирох хэсэгт дамжуулж, тэнд хадгална.
     uiController.addListItem(item, input.type);
+    uiController.clearFields();
     //4.Төсвийг тооцоолно.
+    financeController.tusuvTootsooloh();
+
     //5.Эцсийн үлдэгдэл, тооцоог дэлгэцэнд гаргана.
+    var tusuv = financeController.tusviigAvah();
+
+    //6. Дэлгэцэнд харуулах
     // console.log("click");
   };
 
