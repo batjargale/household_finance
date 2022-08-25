@@ -8,6 +8,11 @@ var uiController = (function () {
     addBtn: ".add__btn",
     incomeList: ".income__list",
     expanseList: ".expenses__list",
+    budgetIncome: ".budget__income--value",
+    budgetExpanse: ".budget__expenses--value",
+    budgetExpansePer: ".budget__expenses--percentage",
+    budgetValue: ".budget__value",
+    containerDiv: ".container",
   };
   return {
     getInput: function () {
@@ -39,17 +44,40 @@ var uiController = (function () {
       // }
       fieldsArr[0].focus();
     },
+    // tusuv: data.tusuv,
+    // huvi: data.huvi,
+    // totalInc: data.totals.inc,
+    // totalExp: data.totals.exp,
+    tusviigUzuuleh: function (tusuv) {
+      document.querySelector(DOMstrings.budgetValue).textContent = tusuv.tusuv;
+      document.querySelector(DOMstrings.budgetIncome).textContent =
+        tusuv.totalInc;
+      document.querySelector(DOMstrings.budgetExpanse).textContent =
+        tusuv.totalExp;
+      if (tusuv.huvi !== 0) {
+        document.querySelector(DOMstrings.budgetExpansePer).textContent =
+          tusuv.huvi + "%";
+      } else {
+        document.querySelector(DOMstrings.budgetExpansePer).textContent =
+          tusuv.huvi;
+      }
+    },
+    deleteListItem: function (id) {
+      // Дэлгэц дээрээс устгах
+      var el = document.getElementById(id);
+      el.parentNode.removeChild(el);
+    },
     addListItem: function (item, type) {
       //Орлого зарлагыг агуулын HTML-ийг бэлтгэнэ.
       var html, list;
       if (type === "inc") {
         list = DOMstrings.incomeList;
         html =
-          '<div class="item clearfix" id="income-%id%"><div class="item__description">$$desc$$</div><div class="right clearfix"><div class="item__value">$$val$$</div><div class="item__delete"><button class="item__delete--btn"><i class="ion-ios-close-outline"></i></button></div></div></div>';
+          '<div class="item clearfix" id="inc-%id%"><div class="item__description">$$desc$$</div><div class="right clearfix"><div class="item__value">$$val$$</div><div class="item__delete"><button class="item__delete--btn"><i class="ion-ios-close-outline"></i></button></div></div></div>';
       } else {
         list = DOMstrings.expanseList;
         html =
-          '<div class="item clearfix" id="expense-%id%"><div class="item__description">$$desc$$</div><div class="right clearfix"><div class="item__value">$$val$$</div><div class="item__percentage">21%</div><div class="item__delete"><button class="item__delete--btn"><i class="ion-ios-close-outline"></i></button></div></div></div>';
+          '<div class="item clearfix" id="exp-%id%"><div class="item__description">$$desc$$</div><div class="right clearfix"><div class="item__value">$$val$$</div><div class="item__percentage">21%</div><div class="item__delete"><button class="item__delete--btn"><i class="ion-ios-close-outline"></i></button></div></div></div>';
       }
       //Тэр HTML дотроо орлого зарлагын утгуудыг REPLACE ашиглаж өөрчилж өгнө.
       html = html.replace("%id%", item.id);
@@ -64,16 +92,19 @@ var uiController = (function () {
 // Санхүүтэй ажиллах контроллер
 var financeController = (function () {
   // Байгуулагч фц тул эхний үсгийг томоор бичнэ
+  // Орлогод олгох
   var Income = function (id, desc, value) {
     this.id = id;
     this.desc = desc;
     this.value = value;
   };
+  // Зарлагад олгох
   var Expense = function (id, desc, value) {
     this.id = id;
     this.desc = desc;
     this.value = value;
   };
+  // Нийт орлого, зарлага
   var calculateTotal = function (type) {
     var sum = 0;
     data.items[type].forEach(function (el) {
@@ -81,6 +112,7 @@ var financeController = (function () {
     });
     data.totals[type] = sum;
   };
+  // Орлого, зарлагыг массивд олгох
   var data = {
     items: {
       inc: [],
@@ -109,6 +141,18 @@ var financeController = (function () {
         totalInc: data.totals.inc,
         totalExp: data.totals.exp,
       };
+    },
+    //Lesson 75
+    deleteItem: function (type, id) {
+      var ids = data.items[type].map(function (el) {
+        return el.id;
+      }); //ids буюу бүх id-ийг агуулсан массив үүсгэв
+      var index = ids.indexOf(id);
+
+      if (index !== -1) {
+        data.items[type].splice(index, 1);
+        // console.log("deleted");
+      }
     },
     addItem: function (type, desc, val) {
       var item, id;
@@ -153,13 +197,14 @@ var appController = (function (uiController, financeController) {
 
     //5.Эцсийн үлдэгдэл, тооцоог дэлгэцэнд гаргана.
     var tusuv = financeController.tusviigAvah();
-
     //6. Дэлгэцэнд харуулах
-    // console.log("click");
+    uiController.tusviigUzuuleh(tusuv);
+    // tusviigUzuuleh();
   };
 
   var setupEventListeners = function () {
     var DOM = uiController.getDOMstrings(); //UI aas css class uudiig duudaj bna
+
     document.querySelector(DOM.addBtn).addEventListener("click", function () {
       ctrlAddItem();
     });
@@ -169,11 +214,43 @@ var appController = (function (uiController, financeController) {
         ctrlAddItem();
       }
     });
+
+    document
+      .querySelector(DOM.containerDiv)
+      .addEventListener("click", function (event) {
+        // console.log(event.target.id);
+        // Тухайн html-ийн parent буюу агуулж буй tag-ийн утгыг дуудах - parentNode -ийг ашиглана. <i>-ийн товчийг  дарахад устгах
+        var id = event.target.parentNode.parentNode.parentNode.parentNode.id;
+
+        if (id) {
+          var arr = id.split("-");
+          var type = arr[0];
+          var itemId = parseInt(arr[1]);
+          // console.log(type + "-" + itemId);
+
+          //1.Санхүүгийн модулиас устгах
+          financeController.deleteItem(type, itemId);
+          // console.log(itemId);
+          //2. Дэлгэц дээрээс устгах
+          uiController.deleteListItem(id);
+          // 3. Үлдэгдэл тооцоог хийж, харуулах
+        }
+
+        // console.log(
+        //   event.target.parentNode.parentNode.parentNode.parentNode.id
+        // );
+      });
   };
 
   return {
     init: function () {
       console.log("Програм уншиж байна ... ");
+      uiController.tusviigUzuuleh({
+        tusuv: 0,
+        huvi: 0,
+        totalInc: 0,
+        totalExp: 0,
+      });
       setupEventListeners();
     },
   };
