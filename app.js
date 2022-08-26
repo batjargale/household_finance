@@ -13,14 +13,52 @@ var uiController = (function () {
     budgetExpansePer: ".budget__expenses--percentage",
     budgetValue: ".budget__value",
     containerDiv: ".container",
+    expensePercentageLabel: ".item__percentage",
+    dateLabel: ".budget__title--month",
   };
+  //Зөвхөн UI ашиглах зорилготой for давталттай фц
+  var nodeListForeach = function (list, callback) {
+    for (var i = 0; i < list.length; i++) {
+      callback(list[i], i);
+    }
+  };
+
   return {
+    displayDate: function () {
+      var unuudur = new Date();
+      document.querySelector(DOMstrings.dateLabel).textContent =
+        unuudur.getFullYear() + " оны " + unuudur.getMonth() + " сар";
+    },
+    changeType: function () {
+      var fields = document.querySelectorAll(
+        DOMstrings.inputType +
+          ", " +
+          DOMstrings.inputDesc +
+          ", " +
+          DOMstrings.inputValue
+      );
+      nodeListForeach(fields, function (el) {
+        el.classList.toggle("red-focus");
+      });
+      document.querySelector(DOMstrings.addBtn).classList.toggle("red");
+    },
     getInput: function () {
       return {
         type: document.querySelector(DOMstrings.inputType).value,
         desc: document.querySelector(DOMstrings.inputDesc).value,
         value: parseInt(document.querySelector(DOMstrings.inputValue).value),
       };
+    },
+
+    displayPercentages: function (allPercentage) {
+      // Зарлагын NodeList-ийг олох Node нь дэд элемент button, div ....
+      var elements = document.querySelectorAll(
+        DOMstrings.expensePercentageLabel
+      );
+      // элемент бүрийн хувьд зарлагын хувийг массиваас авч шивж оруулах
+      nodeListForeach(elements, function (el, index) {
+        el.textContent = allPercentage[index] + "%";
+      });
     },
     getDOMstrings: function () {
       return DOMstrings;
@@ -49,11 +87,12 @@ var uiController = (function () {
     // totalInc: data.totals.inc,
     // totalExp: data.totals.exp,
     tusviigUzuuleh: function (tusuv) {
-      document.querySelector(DOMstrings.budgetValue).textContent = tusuv.tusuv;
+      document.querySelector(DOMstrings.budgetValue).textContent =
+        tusuv.tusuv.toLocaleString();
       document.querySelector(DOMstrings.budgetIncome).textContent =
-        tusuv.totalInc;
+        tusuv.totalInc.toLocaleString();
       document.querySelector(DOMstrings.budgetExpanse).textContent =
-        tusuv.totalExp;
+        tusuv.totalExp.toLocaleString();
       if (tusuv.huvi !== 0) {
         document.querySelector(DOMstrings.budgetExpansePer).textContent =
           tusuv.huvi + "%";
@@ -82,7 +121,7 @@ var uiController = (function () {
       //Тэр HTML дотроо орлого зарлагын утгуудыг REPLACE ашиглаж өөрчилж өгнө.
       html = html.replace("%id%", item.id);
       html = html.replace("$$desc$$", item.desc);
-      html = html.replace("$$val$$", item.value);
+      html = html.replace("$$val$$", item.value.toLocaleString());
       // Бэлтгэсэн Html-ийг DOM руу хийнэ.
       // console.log(html);
       document.querySelector(list).insertAdjacentHTML("beforeend", html);
@@ -233,7 +272,8 @@ var appController = (function (uiController, financeController) {
     //8. Элементүүдийн хувийг хүлээж авах
     var allPercentage = financeController.getPercentages();
     //9. Эдгээр хувийг дэлгэцэнд харуулах
-    console.log(allPercentage);
+    // console.log(allPercentage);
+    uiController.displayPercentages(allPercentage);
   };
 
   var setupEventListeners = function () {
@@ -248,6 +288,11 @@ var appController = (function (uiController, financeController) {
         ctrlAddItem();
       }
     });
+
+    // type change event listener
+    document
+      .querySelector(DOM.inputType)
+      .addEventListener("change", uiController.changeType);
 
     document
       .querySelector(DOM.containerDiv)
@@ -280,6 +325,7 @@ var appController = (function (uiController, financeController) {
   return {
     init: function () {
       console.log("Програм уншиж байна ... ");
+      uiController.displayDate();
       uiController.tusviigUzuuleh({
         tusuv: 0,
         huvi: 0,
